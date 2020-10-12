@@ -6,20 +6,14 @@ import (
 
 	// "io/ioutil"
 	// "net/http"
-	// "fmt"
-	// "net/url"
-	// "os"
+	"fmt"
+	"net/url"
+	"os"
 
 	"github.com/ChimeraCoder/anaconda"
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
 )
-
-
-var consumerKey = "EULx83TrE6sXOl9XbkyIlaRDy"
-var consumerSecret = "MwC4UGc8Fa2m9ulXPvaG0xw5UIycHqoubUESNFwKSmnOVUzvpT"
-var accessToken = "835079557665284096-31DMiJd9m2DMb7cNrIG027KJTFOT6E3"
-var accessTokenSecret = "ZYEf6aq7aMiS9Of2Yf5vSYvnSqrkrhjZwckzw18B0ZNGi"
 
 var (
 	// DefaultHTTPGetAddress Default Address
@@ -32,13 +26,41 @@ var (
 	ErrNon200Response = errors.New("Non 200 Response found")
 )
 
-func handler(request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
-	anaconda.SetConsumerKey(consumerKey)
-	anaconda.SetConsumerSecret(consumerSecret)
-	api := anaconda.NewTwitterApi(accessToken, accessTokenSecret)
-	searchResult, _ := api.GetSearch("#プロクラブ", nil)
+type User struct {
+	Id int64  `json:"id"`
+	Name string  `json:"name"`
+}
 
-	jsonBytes, _ := json.Marshal(searchResult.Statuses)
+type Tweet struct {
+	Id int64  `json:"id"`
+	FullText   string `json:"full_text"`
+	User User `json:"user"`
+}
+
+func handler(request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+	fmt.Println(os.Getenv("CONSUMER_KEY"))
+	
+	anaconda.SetConsumerKey(os.Getenv("CONSUMER_KEY"))
+	anaconda.SetConsumerSecret(os.Getenv("CONSUMER_SECRET"))
+
+	api := anaconda.NewTwitterApi(os.Getenv("ACCESS_TOKEN"), os.Getenv("ACCESS_TOKEN_SECRET"))
+
+	v := url.Values{}
+	v.Set("tweet_mode", "extended")
+
+	searchResult, _ := api.GetSearch("#プロクラブ", v)
+
+	tweets := make([]Tweet, 0)
+
+	for _, tweet := range searchResult.Statuses {
+		// リツイートされたものはfull_textでも'RT <ユーザ名>'が入るので省略されてしまうので、その判定
+    if tweet.RetweetedStatus == nil {
+			tweets = append(tweets, Tweet{tweet.Id, tweet.FullText, User{tweet.User.Id, tweet.User.Name}})
+		}else{
+			tweets = append(tweets, Tweet{tweet.Id, tweet.RetweetedStatus.FullText, User{tweet.User.Id, tweet.User.Name}})
+		}
+	}
+	jsonBytes, _ := json.Marshal(tweets)
 
 
 	return events.APIGatewayProxyResponse{

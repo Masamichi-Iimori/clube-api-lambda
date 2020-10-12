@@ -5,6 +5,17 @@ Description: >
   
   Sample SAM Template for clubes-api-go
 
+Parameters:
+  ConsumerKey:
+    Type: String
+  ConsumerSecret:
+    Type: String
+  AccessToken:
+    Type: String
+  AccessTokenSecret:
+    Type: String
+
+  
 # More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
 Globals:
   Function:
@@ -31,7 +42,10 @@ Resources:
             Method: GET
       Environment: # More info about Env Vars: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#environment-object
         Variables:
-          PARAM1: VALUE
+          CONSUMER_KEY: !Ref ConsumerKey
+          CONSUMER_SECRET: !Ref ConsumerSecret
+          ACCESS_TOKEN: !Ref AccessToken
+          ACCESS_TOKEN_SECRET: !Ref AccessTokenSecret
 
 Outputs:
   # ServerlessRestApi is an implicit API created out of Events key under Serverless::Function
