@@ -5,6 +5,15 @@ Description: 'clubes-api-go
   Sample SAM Template for clubes-api-go
 
   '
+Parameters:
+  ConsumerKey:
+    Type: String
+  ConsumerSecret:
+    Type: String
+  AccessToken:
+    Type: String
+  AccessTokenSecret:
+    Type: String
 Globals:
   Function:
     Timeout: 5
@@ -29,7 +38,14 @@ Resources:
             Method: GET
       Environment:
         Variables:
-          PARAM1: VALUE
+          CONSUMER_KEY:
+            Ref: ConsumerKey
+          CONSUMER_SECRET:
+            Ref: ConsumerSecret
+          ACCESS_TOKEN:
+            Ref: AccessToken
+          ACCESS_TOKEN_SECRET:
+            Ref: AccessTokenSecret
 Outputs:
   HelloWorldAPI:
     Description: API Gateway endpoint URL for Prod environment for First Function
