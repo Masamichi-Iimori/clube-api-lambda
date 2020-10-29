@@ -5,6 +5,7 @@ Description: >
   
   Sample SAM Template for clubes-api-go
 
+  # parameter名はアンダースコア使えない（ぽい）
 Parameters:
   ConsumerKey:
     Type: String

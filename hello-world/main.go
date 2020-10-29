@@ -1,18 +1,19 @@
 package main
 
 import (
-	"errors"
 	"encoding/json"
+	"errors"
+	"log"
+	"time"
 
 	// "io/ioutil"
 	// "net/http"
-	"fmt"
-	"net/url"
-	"os"
 
-	"github.com/ChimeraCoder/anaconda"
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/guregu/dynamo"
 )
 
 var (
@@ -26,72 +27,54 @@ var (
 	ErrNon200Response = errors.New("Non 200 Response found")
 )
 
+// User つぶやいたユーザ情報
 type User struct {
-	Id int64  `json:"id"`
-	Name string  `json:"name"`
+	ID   int64  `dynamo:"id" json:"id"`
+	Name string `dynamo:"name" json:"name"`
 }
 
+// Tweet 参加を募集するツイート
 type Tweet struct {
-	Id int64  `json:"id"`
-	FullText   string `json:"full_text"`
-	User User `json:"user"`
+	ID        int64  `dynamo:"tweet_id" json:"tweet_id"`
+	FullText  string `dynamo:"full_text" json:"full_text"`
+	TweetedAt int64  `dynamo:"tweeted_at" json:"tweeted_at"`
+	User      User   `dynamo:"user" json:"user"`
 }
 
 func handler(request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
-	fmt.Println(os.Getenv("CONSUMER_KEY"))
-	
-	anaconda.SetConsumerKey(os.Getenv("CONSUMER_KEY"))
-	anaconda.SetConsumerSecret(os.Getenv("CONSUMER_SECRET"))
 
-	api := anaconda.NewTwitterApi(os.Getenv("ACCESS_TOKEN"), os.Getenv("ACCESS_TOKEN_SECRET"))
+	region := "ap-northeast-1"
+	tableName := "proclub_tweets"
+	//sess := session.Must(session.NewSession())
+	db := dynamo.New(session.New(), &aws.Config{Region: aws.String(region)})
+	table := db.Table(tableName)
 
-	v := url.Values{}
-	v.Set("tweet_mode", "extended")
+	tweets := []Tweet{}
+	// １時間前までのツイート一覧を取得する
+	filterTime := time.Now().Add(time.Duration(1) * time.Hour * -1).Unix()
 
-	searchResult, _ := api.GetSearch("#プロクラブ", v)
+	err := table.Scan().Filter("'tweeted_at' >= ?", filterTime).All(&tweets)
+	//err := table.Scan().All(&tweets)
 
-	tweets := make([]Tweet, 0)
+	if err != nil {
+		panic(err)
+	}
 
-	for _, tweet := range searchResult.Statuses {
-		// リツイートされたものはfull_textでも'RT <ユーザ名>'が入るので省略されてしまうので、その判定
-    if tweet.RetweetedStatus == nil {
-			tweets = append(tweets, Tweet{tweet.Id, tweet.FullText, User{tweet.User.Id, tweet.User.Name}})
-		}else{
-			tweets = append(tweets, Tweet{tweet.Id, tweet.RetweetedStatus.FullText, User{tweet.User.Id, tweet.User.Name}})
-		}
+	for _, tweet := range tweets {
+		log.Println(tweet.FullText)
 	}
 	jsonBytes, _ := json.Marshal(tweets)
 
-
 	return events.APIGatewayProxyResponse{
-			Headers: map[string]string{
-        "Access-Control-Allow-Origin": "*",
-        "Access-Control-Allow-Headers": "origin,Accept,Authorization,Content-Type",
-        "Content-Type":                 "application/json",
-			},
-			Body:       string(jsonBytes),
-			StatusCode: 200,
+		Headers: map[string]string{
+			"Access-Control-Allow-Origin":  "*",
+			"Access-Control-Allow-Headers": "origin,Accept,Authorization,Content-Type",
+			"Content-Type":                 "application/json",
+		},
+		Body:       string(jsonBytes),
+		StatusCode: 200,
 	}, nil
 }
-
-// func handler(request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
-// 	personID := request.PathParameters["personID"]
-// 	personName := request.QueryStringParameters["personName"]
-// 	old := 25
-
-// 	person := PersonResponse{
-// 			PersonID:   personID,
-// 			PersonName: personName,
-// 			Old:        old,
-// 	}
-// 	jsonBytes, _ := json.Marshal(person)
-
-// 	return events.APIGatewayProxyResponse{
-// 			Body:       string(jsonBytes),
-// 			StatusCode: 200,
-// 	}, nil
-// }
-
 
 func main() {
 	lambda.Start(handler)

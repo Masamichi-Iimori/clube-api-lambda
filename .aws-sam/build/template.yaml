@@ -1,10 +1,8 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
-Description: 'clubes-api-go
-
-  Sample SAM Template for clubes-api-go
-
-  '
+Description: "clubes-api-go\nSample SAM Template for clubes-api-go\n# parameter\u540D\
+  \u306F\u30A2\u30F3\u30C0\u30FC\u30B9\u30B3\u30A2\u4F7F\u3048\u306A\u3044\uFF08\u307D\
+  \u3044\uFF09\n"
 Parameters:
   ConsumerKey:
     Type: String
