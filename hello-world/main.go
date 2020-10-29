@@ -41,6 +41,7 @@ type Tweet struct {
 	User      User   `dynamo:"user" json:"user"`
 }
 
+// パラメータで時間指定があればその時間だけ遡れるといい？
 func handler(request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 
 	region := "ap-northeast-1"
