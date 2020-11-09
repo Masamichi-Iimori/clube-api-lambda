@@ -28,7 +28,7 @@ Resources:
   GetTweetFunction:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: s3://clubes-api-go/bbaea30c8b83fc41dab222387e6360e3
+      CodeUri: s3://clubes-api-go/5bb930db756bc10d429c007240362513
       Handler: main
       Runtime: go1.x
       Tracing: Active
@@ -55,7 +55,7 @@ Resources:
   SearchTweetFunction:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: s3://clubes-api-go/4930f30c99efe46eec7e87b4a4039c29
+      CodeUri: s3://clubes-api-go/70981992a0f4b62f17fa256fe9200cac
       Handler: main
       Runtime: go1.x
       Tracing: Active
