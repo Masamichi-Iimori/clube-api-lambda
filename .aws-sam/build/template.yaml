@@ -4,6 +4,10 @@ Description: "clubes-api-go\nSample SAM Template for clubes-api-go\n# parameter\
   \u306F\u30A2\u30F3\u30C0\u30FC\u30B9\u30B3\u30A2\u4F7F\u3048\u306A\u3044\uFF08\u307D\
   \u3044\uFF09\n"
 Parameters:
+  AwsAccessKey:
+    Type: String
+  AwsSecretAccessKey:
+    Type: String
   ConsumerKey:
     Type: String
   ConsumerSecret:
@@ -21,10 +25,10 @@ Globals:
       AllowHeaders: '''Content-Type,Authorization,X-Amz-Date,X-Api-Key,X-Amz-Security-Token'''
       AllowOrigin: '''*'''
 Resources:
-  HelloWorldFunction:
+  GetTweetFunction:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: HelloWorldFunction
+      CodeUri: GetTweetFunction
       Handler: main
       Runtime: go1.x
       Tracing: Active
@@ -36,6 +40,37 @@ Resources:
             Method: GET
       Environment:
         Variables:
+          AWS_ACCEESS_KEY:
+            Ref: AwsAccessKey
+          AWS_SECRET_ACCEESS_KEY:
+            Ref: AwsSecretAccessKey
+          CONSUMER_KEY:
+            Ref: ConsumerKey
+          CONSUMER_SECRET:
+            Ref: ConsumerSecret
+          ACCESS_TOKEN:
+            Ref: AccessToken
+          ACCESS_TOKEN_SECRET:
+            Ref: AccessTokenSecret
+  SearchTweetFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: SearchTweetFunction
+      Handler: main
+      Runtime: go1.x
+      Tracing: Active
+      Events:
+        CatchAll:
+          Type: Api
+          Properties:
+            Path: /tweets/search
+            Method: GET
+      Environment:
+        Variables:
+          AWS_ACCEESS_KEY:
+            Ref: AwsAccessKey
+          AWS_SECRET_ACCEESS_KEY:
+            Ref: AwsSecretAccessKey
           CONSUMER_KEY:
             Ref: ConsumerKey
           CONSUMER_SECRET:
@@ -45,19 +80,31 @@ Resources:
           ACCESS_TOKEN_SECRET:
             Ref: AccessTokenSecret
 Outputs:
-  HelloWorldAPI:
+  TweetAPI:
     Description: API Gateway endpoint URL for Prod environment for First Function
     Value:
       Fn::Sub: https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/hello/
-  HelloWorldFunction:
+  GetTweetFunction:
     Description: First Lambda Function ARN
     Value:
       Fn::GetAtt:
-      - HelloWorldFunction
+      - GetTweetFunction
       - Arn
-  HelloWorldFunctionIamRole:
+  GetTweetFunctionIamRole:
     Description: Implicit IAM Role created for Hello World function
     Value:
       Fn::GetAtt:
-      - HelloWorldFunctionRole
+      - GetTweetFunctionRole
+      - Arn
+  SearchTweetFunction:
+    Description: First Lambda Function ARN
+    Value:
+      Fn::GetAtt:
+      - SearchTweetFunction
+      - Arn
+  SearchTweetFunctionIamRole:
+    Description: Implicit IAM Role created for Hello World function
+    Value:
+      Fn::GetAtt:
+      - SearchTweetFunctionRole
       - Arn
