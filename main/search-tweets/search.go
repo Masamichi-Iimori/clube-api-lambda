@@ -3,8 +3,10 @@ package main
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"os"
 	"sort"
+	"strconv"
 	"strings"
 	"time"
 
@@ -73,7 +75,7 @@ func filteringPositions(filterPositions []string, tweets tweet.Tweets) (result t
 				isMatch = true
 			}
 		}
-		if isMatch || len(tweet.Position) == 0 {
+		if isMatch {
 			result = append(result, tweet)
 		}
 	}
@@ -102,11 +104,23 @@ func handler(request events.APIGatewayProxyRequest) (events.APIGatewayProxyRespo
 	query := request.QueryStringParameters
 	filterPositions := []string{}
 	filterWords := []string{}
+	var pastTime time.Duration
+
+	pastTime = 2 //デフォルトは2時間前まで表示する
+
 	if len(query["positions"]) != 0 {
 		filterPositions = strings.Split(query["positions"], ",")
 	}
 	if len(query["words"]) != 0 {
 		filterWords = strings.Split(query["words"], ",")
+	}
+
+	if len(query["past_time"]) != 0 {
+		pastTimeQuery, err := strconv.Atoi(query["past_time"])
+		if err != nil {
+			fmt.Println(err)
+		}
+		pastTime = time.Duration(pastTimeQuery)
 	}
 
 	region := "ap-northeast-1"
@@ -123,8 +137,8 @@ func handler(request events.APIGatewayProxyRequest) (events.APIGatewayProxyRespo
 	db := dynamo.New(sess)
 	table := db.Table(tableName)
 
-	// 指定した時間までさかのぼってツイート一覧を取得する
-	const pastTime = 2
+	// // 指定した時間までさかのぼってツイート一覧を取得する
+	// const pastTime = 2
 
 	var tweets tweet.Tweets
 
