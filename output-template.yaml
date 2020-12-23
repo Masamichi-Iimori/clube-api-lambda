@@ -55,7 +55,7 @@ Resources:
   SearchTweetFunction:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: s3://clubes-api-go/fe68f920c70efa5fdbcdb84cc0b52d87
+      CodeUri: s3://clubes-api-go/8baa373ba44b98edefd0ab5475670c60
       Handler: main
       Runtime: go1.x
       Tracing: Active
@@ -64,6 +64,60 @@ Resources:
           Type: Api
           Properties:
             Path: /tweets/search
+            Method: GET
+      Environment:
+        Variables:
+          AWS_ACCEESS_KEY:
+            Ref: AwsAccessKey
+          AWS_SECRET_ACCEESS_KEY:
+            Ref: AwsSecretAccessKey
+          CONSUMER_KEY:
+            Ref: ConsumerKey
+          CONSUMER_SECRET:
+            Ref: ConsumerSecret
+          ACCESS_TOKEN:
+            Ref: AccessToken
+          ACCESS_TOKEN_SECRET:
+            Ref: AccessTokenSecret
+  TwitterSignInFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: s3://clubes-api-go/e9d291592042aa8ae09d95a797f901ce
+      Handler: main
+      Runtime: go1.x
+      Tracing: Active
+      Events:
+        CatchAll:
+          Type: Api
+          Properties:
+            Path: /twitter/sign_in
+            Method: GET
+      Environment:
+        Variables:
+          AWS_ACCEESS_KEY:
+            Ref: AwsAccessKey
+          AWS_SECRET_ACCEESS_KEY:
+            Ref: AwsSecretAccessKey
+          CONSUMER_KEY:
+            Ref: ConsumerKey
+          CONSUMER_SECRET:
+            Ref: ConsumerSecret
+          ACCESS_TOKEN:
+            Ref: AccessToken
+          ACCESS_TOKEN_SECRET:
+            Ref: AccessTokenSecret
+  TwitterCallbackFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: s3://clubes-api-go/ba1a42bec9cf0efeb1baf678b133d375
+      Handler: main
+      Runtime: go1.x
+      Tracing: Active
+      Events:
+        CatchAll:
+          Type: Api
+          Properties:
+            Path: /twitter/callback
             Method: GET
       Environment:
         Variables:
@@ -107,4 +161,28 @@ Outputs:
     Value:
       Fn::GetAtt:
       - SearchTweetFunctionRole
+      - Arn
+  TwitterSignInFunction:
+    Description: First Lambda Function ARN
+    Value:
+      Fn::GetAtt:
+      - TwitterSignInFunction
+      - Arn
+  TwitterSignInFunctionIamRole:
+    Description: Implicit IAM Role created for Hello World function
+    Value:
+      Fn::GetAtt:
+      - TwitterSignInFunctionRole
+      - Arn
+  TwitterCallbackFunction:
+    Description: First Lambda Function ARN
+    Value:
+      Fn::GetAtt:
+      - TwitterCallbackFunction
+      - Arn
+  TwitterCallbackFunctionIamRole:
+    Description: Implicit IAM Role created for Hello World function
+    Value:
+      Fn::GetAtt:
+      - TwitterCallbackFunctionRole
       - Arn

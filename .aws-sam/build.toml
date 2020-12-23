@@ -10,3 +10,13 @@ functions = ["GetTweetFunction"]
 codeuri = "main/search-tweets/"
 runtime = "go1.x"
 functions = ["SearchTweetFunction"]
+
+[build_definitions.d64e81da-b684-4289-b884-81ee75c648d6]
+codeuri = "main/twitter-sign-in/"
+runtime = "go1.x"
+functions = ["TwitterSignInFunction"]
+
+[build_definitions.708c1772-1183-4f66-b964-077ef89bc5f1]
+codeuri = "main/twitter-callback/"
+runtime = "go1.x"
+functions = ["TwitterCallbackFunction"]

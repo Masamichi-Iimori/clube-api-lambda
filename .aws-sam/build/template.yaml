@@ -79,6 +79,60 @@ Resources:
             Ref: AccessToken
           ACCESS_TOKEN_SECRET:
             Ref: AccessTokenSecret
+  TwitterSignInFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: TwitterSignInFunction
+      Handler: main
+      Runtime: go1.x
+      Tracing: Active
+      Events:
+        CatchAll:
+          Type: Api
+          Properties:
+            Path: /twitter/sign_in
+            Method: GET
+      Environment:
+        Variables:
+          AWS_ACCEESS_KEY:
+            Ref: AwsAccessKey
+          AWS_SECRET_ACCEESS_KEY:
+            Ref: AwsSecretAccessKey
+          CONSUMER_KEY:
+            Ref: ConsumerKey
+          CONSUMER_SECRET:
+            Ref: ConsumerSecret
+          ACCESS_TOKEN:
+            Ref: AccessToken
+          ACCESS_TOKEN_SECRET:
+            Ref: AccessTokenSecret
+  TwitterCallbackFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: TwitterCallbackFunction
+      Handler: main
+      Runtime: go1.x
+      Tracing: Active
+      Events:
+        CatchAll:
+          Type: Api
+          Properties:
+            Path: /twitter/callback
+            Method: GET
+      Environment:
+        Variables:
+          AWS_ACCEESS_KEY:
+            Ref: AwsAccessKey
+          AWS_SECRET_ACCEESS_KEY:
+            Ref: AwsSecretAccessKey
+          CONSUMER_KEY:
+            Ref: ConsumerKey
+          CONSUMER_SECRET:
+            Ref: ConsumerSecret
+          ACCESS_TOKEN:
+            Ref: AccessToken
+          ACCESS_TOKEN_SECRET:
+            Ref: AccessTokenSecret
 Outputs:
   TweetAPI:
     Description: API Gateway endpoint URL for Prod environment for First Function
@@ -107,4 +161,28 @@ Outputs:
     Value:
       Fn::GetAtt:
       - SearchTweetFunctionRole
+      - Arn
+  TwitterSignInFunction:
+    Description: First Lambda Function ARN
+    Value:
+      Fn::GetAtt:
+      - TwitterSignInFunction
+      - Arn
+  TwitterSignInFunctionIamRole:
+    Description: Implicit IAM Role created for Hello World function
+    Value:
+      Fn::GetAtt:
+      - TwitterSignInFunctionRole
+      - Arn
+  TwitterCallbackFunction:
+    Description: First Lambda Function ARN
+    Value:
+      Fn::GetAtt:
+      - TwitterCallbackFunction
+      - Arn
+  TwitterCallbackFunctionIamRole:
+    Description: Implicit IAM Role created for Hello World function
+    Value:
+      Fn::GetAtt:
+      - TwitterCallbackFunctionRole
       - Arn

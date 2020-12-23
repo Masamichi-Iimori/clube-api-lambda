@@ -98,7 +98,6 @@ func filteringWords(filterWords []string, tweets tweet.Tweets) (result tweet.Twe
 	return result
 }
 
-// パラメータで時間指定があればその時間だけ遡れるといい？
 func handler(request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 
 	query := request.QueryStringParameters
