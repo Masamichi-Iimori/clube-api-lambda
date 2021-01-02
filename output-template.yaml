@@ -82,7 +82,7 @@ Resources:
   TwitterSignInFunction:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: s3://clubes-api-go/e9d291592042aa8ae09d95a797f901ce
+      CodeUri: s3://clubes-api-go/552c543f62573a67730dd2473999b6ee
       Handler: main
       Runtime: go1.x
       Tracing: Active
@@ -109,7 +109,7 @@ Resources:
   TwitterCallbackFunction:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: s3://clubes-api-go/ba1a42bec9cf0efeb1baf678b133d375
+      CodeUri: s3://clubes-api-go/195260b1cf53a2948ad28c2ddd07518e
       Handler: main
       Runtime: go1.x
       Tracing: Active

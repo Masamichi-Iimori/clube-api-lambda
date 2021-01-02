@@ -20,3 +20,8 @@ functions = ["TwitterSignInFunction"]
 codeuri = "main/twitter-callback/"
 runtime = "go1.x"
 functions = ["TwitterCallbackFunction"]
+
+[build_definitions.dc94612e-0616-4245-8695-d73bc2799852]
+codeuri = "main/twitter-get-me/"
+runtime = "go1.x"
+functions = ["TwitterGetMyAccountFunction"]

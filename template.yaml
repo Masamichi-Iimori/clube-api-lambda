@@ -116,6 +116,27 @@ Resources:
           CONSUMER_SECRET: !Ref ConsumerSecret
           ACCESS_TOKEN: !Ref AccessToken
           ACCESS_TOKEN_SECRET: !Ref AccessTokenSecret
+  TwitterGetMyAccountFunction:
+    Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+    Properties:
+      CodeUri: main/twitter-get-me/
+      Handler: main
+      Runtime: go1.x
+      Tracing: Active # https://docs.aws.amazon.com/lambda/latest/dg/lambda-x-ray.html
+      Events:
+        CatchAll:
+          Type: Api # More info about API Event Source: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#api
+          Properties:
+            Path: /twitter/me
+            Method: GET
+      Environment: # More info about Env Vars: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#environment-object
+        Variables:
+          AWS_ACCEESS_KEY: !Ref AwsAccessKey
+          AWS_SECRET_ACCEESS_KEY: !Ref AwsSecretAccessKey
+          CONSUMER_KEY: !Ref ConsumerKey
+          CONSUMER_SECRET: !Ref ConsumerSecret
+          ACCESS_TOKEN: !Ref AccessToken
+          ACCESS_TOKEN_SECRET: !Ref AccessTokenSecret
 
 Outputs:
   # ServerlessRestApi is an implicit API created out of Events key under Serverless::Function

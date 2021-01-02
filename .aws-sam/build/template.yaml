@@ -133,6 +133,33 @@ Resources:
             Ref: AccessToken
           ACCESS_TOKEN_SECRET:
             Ref: AccessTokenSecret
+  TwitterGetMyAccountFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: TwitterGetMyAccountFunction
+      Handler: main
+      Runtime: go1.x
+      Tracing: Active
+      Events:
+        CatchAll:
+          Type: Api
+          Properties:
+            Path: /twitter/me
+            Method: GET
+      Environment:
+        Variables:
+          AWS_ACCEESS_KEY:
+            Ref: AwsAccessKey
+          AWS_SECRET_ACCEESS_KEY:
+            Ref: AwsSecretAccessKey
+          CONSUMER_KEY:
+            Ref: ConsumerKey
+          CONSUMER_SECRET:
+            Ref: ConsumerSecret
+          ACCESS_TOKEN:
+            Ref: AccessToken
+          ACCESS_TOKEN_SECRET:
+            Ref: AccessTokenSecret
 Outputs:
   TweetAPI:
     Description: API Gateway endpoint URL for Prod environment for First Function

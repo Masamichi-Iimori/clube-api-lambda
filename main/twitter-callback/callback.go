@@ -8,7 +8,6 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
-	"regexp"
 	"time"
 
 	"github.com/aws/aws-lambda-go/events"
@@ -35,7 +34,7 @@ var (
 type Request struct {
 	OauthToken    string `json:"oauth_token"`
 	OauthVerifier string `json:"oauth_verifier"`
-	Cookie        string `json:"Cookie"`
+	SessionID     string `json:"session_id"`
 }
 
 // Token TwitterAPIから取得した一時Tokenを保存するための構造体
@@ -48,26 +47,26 @@ type Token struct {
 
 // Session TwitterAPIから取得したアクセストークンを保存するための構造体
 type Session struct {
-	ID           string `dynamo:"id"`
-	AccessToken  string `dynamo:"access_token"`
-	SecretToken  string `dynamo:"secret_token"`
-	RegisterDate string `dynamo:"register_date"`
+	ID           string `dynamo:"id" json:"id"`
+	AccessToken  string `dynamo:"access_token" json:"acceess_token"`
+	SecretToken  string `dynamo:"secret_token" json:"secret_token"`
+	RegisterDate string `dynamo:"register_date" json:"register_date"`
+	ScreenName   string `dynamo:"screen_name" json:"screen_name"`
+	UserID       string `dynamo:"user_id" json:"user_id"`
 }
 
 // Account TwitterAPIから取得したユーザー情報から、screen_nameを取り出すための構造体
 type Account struct {
-	ScreenName string `json:"screen_name"`
+	ID                   string `dynamo:"id_str" json:"id_str"`
+	ScreenName           string `dynamo:"screen_name" json:"screen_name"`
+	ProfileImageURL      string `dynamo:"profile_image_url" json:"profile_image_url"`
+	ProfileImageURLHttps string `dynamo:"profile_image_url_https" json:"profile_image_url_https"`
 }
 
 // Response APIGatewayへのレスポンスを定義するための構造体
 type Response struct {
 	Location string `json:"location"`
 	Cookie   string `json:"cookie"`
-}
-
-// Cookie クッキー
-type Cookie struct {
-	ID string `json:id`
 }
 
 func createSessionID(screenName string) string {
@@ -104,11 +103,7 @@ func handler(request events.APIGatewayProxyRequest) (events.APIGatewayProxyRespo
 
 	db := dynamo.New(sess)
 	tokenTable := db.Table("token")
-
-	// session_idの取り出し
-	assigned := regexp.MustCompile("id=(.*)")
-	group := assigned.FindSubmatch([]byte(request.Headers["Cookie"]))
-	sessionID := string(group[1])
+	sessionID := query["session_id"]
 
 	// DBからOAuthトークンの取得
 	var token []Token
@@ -140,11 +135,11 @@ func handler(request events.APIGatewayProxyRequest) (events.APIGatewayProxyRespo
 	format := "2006-01-02 15:04:05"
 
 	// TwitterAPIからアクセストークンの取得
-	response, err := oauthClient.Get(nil, tokenCard, "https://api.twitter.com/1.1/account/verify_credentials.json", nil)
+	twitterAPIResponse, err := oauthClient.Get(nil, tokenCard, "https://api.twitter.com/1.1/account/verify_credentials.json", nil)
 	if err != nil {
 		panic(err)
 	}
-	body, err := ioutil.ReadAll(response.Body)
+	body, err := ioutil.ReadAll(twitterAPIResponse.Body)
 
 	// 取得したユーザー情報をJSONから変換する
 	var user Account
@@ -152,6 +147,8 @@ func handler(request events.APIGatewayProxyRequest) (events.APIGatewayProxyRespo
 
 	// Sessionテーブル
 	sessionTable := db.Table("session")
+	// Userテーブル
+	userTable := db.Table("user")
 
 	// session_idの作成
 	id := createSessionID(user.ScreenName)
@@ -162,29 +159,32 @@ func handler(request events.APIGatewayProxyRequest) (events.APIGatewayProxyRespo
 		AccessToken:  tokenCard.Token,
 		SecretToken:  tokenCard.Secret,
 		RegisterDate: time.Now().Format(format),
+		ScreenName:   user.ScreenName,
+		UserID:       user.ID,
 	}
-	// INSERTの実行
+
+	// SessionへのINSERTの実行
 	if err = sessionTable.Put(s).Run(); err != nil {
 		fmt.Println("err")
 		panic(err.Error())
 	}
 
-	// リダイレクトさせてCookieをつけたい
-	redirectURL := "https://clubhub.ga"
+	// UserへのINSERTの実行
+	if err = userTable.Put(user).Run(); err != nil {
+		fmt.Println("err")
+		panic(err.Error())
+	}
 
-	// returnResponse := Response{
-	// 	Location: redirectURL,
-	// 	Cookie:   fmt.Sprintf("id=%s;", id),
-	// }
-
-	// jsonBytes, _ := json.Marshal(response)
+	jsonBytes, _ := json.Marshal(s)
 
 	return events.APIGatewayProxyResponse{
-		StatusCode: 301,
+		StatusCode: 200,
 		Headers: map[string]string{
-			"Location":   redirectURL,
-			"Set-Cookie": fmt.Sprintf("id=%s;", id),
+			"Access-Control-Allow-Origin":  "*",
+			"Access-Control-Allow-Headers": "origin,Accept,Authorization,Content-Type",
+			"Content-Type":                 "application/json",
 		},
+		Body: string(jsonBytes),
 	}, nil
 
 }

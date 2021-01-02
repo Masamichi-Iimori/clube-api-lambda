@@ -51,7 +51,7 @@ type ProviderIndex struct {
 }
 
 type Token struct {
-	Id           string `dynamo:"id"`
+	ID           string `dynamo:"id"`
 	OauthToken   string `dynamo:"oauth_token"`
 	SecretToken  string `dynamo:"secret_token"`
 	RegisterDate string `dynamo:"register_date"`
@@ -59,8 +59,8 @@ type Token struct {
 
 // APIGatewayへのレスポンスを定義するための構造体
 type Response struct {
-	Location string `json:"location"`
-	Cookie   string `json:"cookie"`
+	AuthorizeURL string `json:"authorize_url"`
+	OauthTokenID string `json:"oauth_token_id"`
 }
 
 // GetConnect 接続を取得する
@@ -123,7 +123,8 @@ func handler() (events.APIGatewayProxyResponse, error) {
 
 	config := GetConnect()
 
-	callbackURL := "http://127.0.0.1:3000/twitter/callback"
+	// callbackURL := "http://127.0.0.1:3000/twitter/callback"
+	callbackURL := "http://127.0.0.1:3001"
 
 	tempCredentials, err := config.RequestTemporaryCredentials(nil, callbackURL, nil)
 	if err != nil {
@@ -150,7 +151,7 @@ func handler() (events.APIGatewayProxyResponse, error) {
 	id := createSessionID()
 
 	t := Token{
-		Id:           id,
+		ID:           id,
 		OauthToken:   tempCredentials.Token,
 		SecretToken:  tempCredentials.Secret,
 		RegisterDate: time.Now().Format(format),
@@ -164,17 +165,20 @@ func handler() (events.APIGatewayProxyResponse, error) {
 	authorizeURL := config.AuthorizationURL(tempCredentials, nil)
 
 	response := Response{
-		Location: authorizeURL,
-		Cookie:   fmt.Sprintf("id=%s;", id),
+		AuthorizeURL: authorizeURL,
+		OauthTokenID: id,
 	}
 
 	jsonBytes, _ := json.Marshal(response)
 
 	return events.APIGatewayProxyResponse{
-		StatusCode: 301,
+		StatusCode: 200,
 		Headers: map[string]string{
-			"Location":   authorizeURL,
-			"Set-Cookie": fmt.Sprintf("id=%s;", id),
+			"Access-Control-Allow-Origin":  "*",
+			"Access-Control-Allow-Headers": "origin,Accept,Authorization,Content-Type",
+			"Content-Type":                 "application/json",
+			// "Location":                     authorizeURL,
+			// "Set-Cookie":                   fmt.Sprintf("id=%s;", id),
 		},
 		Body: string(jsonBytes),
 	}, nil
