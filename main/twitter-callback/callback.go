@@ -47,12 +47,14 @@ type Token struct {
 
 // Session TwitterAPIから取得したアクセストークンを保存するための構造体
 type Session struct {
-	ID           string `dynamo:"id" json:"id"`
-	AccessToken  string `dynamo:"access_token" json:"acceess_token"`
-	SecretToken  string `dynamo:"secret_token" json:"secret_token"`
-	RegisterDate string `dynamo:"register_date" json:"register_date"`
-	ScreenName   string `dynamo:"screen_name" json:"screen_name"`
-	UserID       string `dynamo:"user_id" json:"user_id"`
+	ID                   string `dynamo:"id" json:"id"`
+	AccessToken          string `dynamo:"access_token" json:"acceess_token"`
+	SecretToken          string `dynamo:"secret_token" json:"secret_token"`
+	RegisterDate         string `dynamo:"register_date" json:"register_date"`
+	ScreenName           string `dynamo:"screen_name" json:"screen_name"`
+	UserID               string `dynamo:"user_id" json:"user_id"`
+	ProfileImageURL      string `dynamo:"profile_image_url" json:"profile_image_url"`
+	ProfileImageURLHttps string `dynamo:"profile_image_url_https" json:"profile_image_url_https"`
 }
 
 // Account TwitterAPIから取得したユーザー情報から、screen_nameを取り出すための構造体
@@ -76,9 +78,6 @@ func createSessionID(screenName string) string {
 
 func handler(request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 	query := request.QueryStringParameters
-	fmt.Println("---------------------")
-	fmt.Println(query)
-	fmt.Println("---------------------")
 
 	//OAuthの設定
 	oauthClient := &oauth.Client{
@@ -155,12 +154,14 @@ func handler(request events.APIGatewayProxyRequest) (events.APIGatewayProxyRespo
 
 	// Sessionテーブルに格納するレコードの作成
 	s := Session{
-		ID:           id,
-		AccessToken:  tokenCard.Token,
-		SecretToken:  tokenCard.Secret,
-		RegisterDate: time.Now().Format(format),
-		ScreenName:   user.ScreenName,
-		UserID:       user.ID,
+		ID:                   id,
+		AccessToken:          tokenCard.Token,
+		SecretToken:          tokenCard.Secret,
+		RegisterDate:         time.Now().Format(format),
+		ScreenName:           user.ScreenName,
+		UserID:               user.ID,
+		ProfileImageURL:      user.ProfileImageURL,
+		ProfileImageURLHttps: user.ProfileImageURLHttps,
 	}
 
 	// SessionへのINSERTの実行

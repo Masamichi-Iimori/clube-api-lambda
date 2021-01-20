@@ -109,7 +109,7 @@ Resources:
   TwitterCallbackFunction:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: s3://clubes-api-go/195260b1cf53a2948ad28c2ddd07518e
+      CodeUri: s3://clubes-api-go/e7f6911d1c4aa24512bec16e3ecc6c13
       Handler: main
       Runtime: go1.x
       Tracing: Active
@@ -118,6 +118,33 @@ Resources:
           Type: Api
           Properties:
             Path: /twitter/callback
+            Method: GET
+      Environment:
+        Variables:
+          AWS_ACCEESS_KEY:
+            Ref: AwsAccessKey
+          AWS_SECRET_ACCEESS_KEY:
+            Ref: AwsSecretAccessKey
+          CONSUMER_KEY:
+            Ref: ConsumerKey
+          CONSUMER_SECRET:
+            Ref: ConsumerSecret
+          ACCESS_TOKEN:
+            Ref: AccessToken
+          ACCESS_TOKEN_SECRET:
+            Ref: AccessTokenSecret
+  TwitterGetMyAccountFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: s3://clubes-api-go/73d5ea5614963410904aabc7f7987ff2
+      Handler: main
+      Runtime: go1.x
+      Tracing: Active
+      Events:
+        CatchAll:
+          Type: Api
+          Properties:
+            Path: /twitter/me
             Method: GET
       Environment:
         Variables:

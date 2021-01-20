@@ -14,6 +14,7 @@ type Tweet struct {
 	TweetedAt int64    `dynamo:"tweeted_at" json:"tweeted_at"`
 	User      User     `dynamo:"user" json:"user"`
 	Position  []string `dynamo:"position" json:"positions"`
+	MediaURLs []string `dynamo:"media_url" json:"media_url"`
 	IsClub    bool     `dynamo:"is_club" json:"is_club"`
 }
 

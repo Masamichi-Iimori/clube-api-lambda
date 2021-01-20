@@ -48,12 +48,12 @@ type Session struct {
 	SecretToken  string `dynamo:"secret_token" json:"secret_token"`
 	RegisterDate string `dynamo:"register_date" json:"register_date"`
 	ScreenName   string `dynamo:"screen_name" json:"screen_name"`
-	UserID       string `dynamo:"id_str" json:"id_str"`
+	UserID       string `dynamo:"user_id" json:"id_str"`
 }
 
 // Account TwitterAPIから取得したユーザー情報から、screen_nameを取り出すための構造体
 type Account struct {
-	ID                   string `dynamo:"id_str" json:"id_str"`
+	ID                   string `dynamo:"id_str" json:"id"`
 	ScreenName           string `dynamo:"screen_name" json:"screen_name"`
 	ProfileImageURL      string `dynamo:"profile_image_url" json:"profile_image_url"`
 	ProfileImageURLHttps string `dynamo:"profile_image_url_https" json:"profile_image_url_https"`
@@ -115,7 +115,7 @@ func handler(request events.APIGatewayProxyRequest) (events.APIGatewayProxyRespo
 		}
 	}
 
-	jsonBytes, _ := json.Marshal(user)
+	jsonBytes, _ := json.Marshal(user[0])
 	if err != nil {
 		panic(err.Error())
 	}
@@ -128,7 +128,6 @@ func handler(request events.APIGatewayProxyRequest) (events.APIGatewayProxyRespo
 		},
 		Body: string(jsonBytes),
 	}, nil
-
 }
 
 func main() {
