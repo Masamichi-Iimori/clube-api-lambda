@@ -1,10 +1,15 @@
+// TODO: getで検索もできるのでこっちは消す（フロント修正後）
+
 package main
 
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"os"
 	"sort"
+	"strconv"
+	"strings"
 	"time"
 
 	"github.com/aws/aws-lambda-go/events"
@@ -28,8 +33,96 @@ var (
 	ErrNon200Response = errors.New("Non 200 Response found")
 )
 
-// パラメータで時間指定があればその時間だけ遡れるといい？
+// スライスに指定した要素が含まれているかチェックする関数
+func contains(target interface{}, list interface{}) bool {
+
+	switch list.(type) {
+	default:
+		return false
+	case []int:
+		revert := list.([]int)
+		for _, r := range revert {
+			if target == r {
+				return true
+			}
+		}
+		return false
+
+	case []uint64:
+		revert := list.([]uint64)
+		for _, r := range revert {
+			if target == r {
+				return true
+			}
+		}
+		return false
+
+	case []string:
+		revert := list.([]string)
+		for _, r := range revert {
+			if target == r {
+				return true
+			}
+		}
+		return false
+	}
+}
+
+// 指定したポジションが含まれている、もしくはポジション別の募集が無いツイートだけをfilteredTweetsに入れる
+func filteringPositions(filterPositions []string, tweets tweet.Tweets) (result tweet.Tweets) {
+	for _, tweet := range tweets {
+		isMatch := false
+		for _, position := range tweet.Position {
+			if contains(position, filterPositions) {
+				isMatch = true
+			}
+		}
+		if isMatch {
+			result = append(result, tweet)
+		}
+	}
+
+	return result
+}
+
+func filteringWords(filterWords []string, tweets tweet.Tweets) (result tweet.Tweets) {
+	for _, tweet := range tweets {
+		for _, word := range filterWords {
+			if strings.Contains(tweet.FullText, word) {
+				result = append(result, tweet)
+			}
+		}
+	}
+	if result == nil {
+		result = tweet.Tweets{}
+	}
+
+	return result
+}
+
 func handler(request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+
+	query := request.QueryStringParameters
+	filterPositions := []string{}
+	filterWords := []string{}
+	var pastTime time.Duration
+
+	pastTime = 2 //デフォルトは2時間前まで表示する
+
+	if len(query["positions"]) != 0 {
+		filterPositions = strings.Split(query["positions"], ",")
+	}
+	if len(query["words"]) != 0 {
+		filterWords = strings.Split(query["words"], ",")
+	}
+
+	if len(query["past_time"]) != 0 {
+		pastTimeQuery, err := strconv.Atoi(query["past_time"])
+		if err != nil {
+			fmt.Println(err)
+		}
+		pastTime = time.Duration(pastTimeQuery)
+	}
 
 	region := "ap-northeast-1"
 	tableName := "proclub_tweets"
@@ -45,8 +138,8 @@ func handler(request events.APIGatewayProxyRequest) (events.APIGatewayProxyRespo
 	db := dynamo.New(sess)
 	table := db.Table(tableName)
 
-	// 2時間前までのツイート一覧を取得する
-	const pastTime = 2
+	// // 指定した時間までさかのぼってツイート一覧を取得する
+	// const pastTime = 2
 
 	var tweets tweet.Tweets
 
@@ -56,6 +149,16 @@ func handler(request events.APIGatewayProxyRequest) (events.APIGatewayProxyRespo
 
 	if err != nil {
 		panic(err)
+	}
+
+	//filteredTweets := []Tweet{}
+
+	if len(filterPositions) != 0 {
+		tweets = filteringPositions(filterPositions, tweets)
+	}
+
+	if len(filterWords) != 0 {
+		tweets = filteringWords(filterWords, tweets)
 	}
 
 	sort.Sort(tweets)

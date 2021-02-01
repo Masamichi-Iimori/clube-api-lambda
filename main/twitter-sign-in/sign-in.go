@@ -123,8 +123,9 @@ func handler() (events.APIGatewayProxyResponse, error) {
 
 	config := GetConnect()
 
-	// callbackURL := "http://127.0.0.1:3000/twitter/callback"
-	callbackURL := "http://127.0.0.1:3001"
+	// TODO: ローカルとデプロイ先を切り替えられるように
+	// callbackURL := "http://127.0.0.1:3001"
+	callbackURL := "https://clubhub.ga"
 
 	tempCredentials, err := config.RequestTemporaryCredentials(nil, callbackURL, nil)
 	if err != nil {
